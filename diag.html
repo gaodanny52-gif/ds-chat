@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>存储诊断</title>
+<style>
+body{font-family:system-ui,sans-serif;margin:16px;line-height:1.5;background:#111;color:#eee}
+h1{font-size:18px}
+pre{white-space:pre-wrap;word-break:break-all;background:#1c1c1c;padding:12px;border-radius:8px;font-size:13px}
+button{font-size:16px;padding:10px 16px;margin:8px 8px 0 0;border-radius:8px;border:0;background:#3b82f6;color:#fff}
+</style>
+</head>
+<body>
+<h1>存储诊断</h1>
+<pre id="out">检测中…</pre>
+<button id="run">重新测试</button>
+<button id="clear">清除测试数据</button>
+<script>
+const out = document.getElementById('out');
+const log = (s) => { out.textContent += '\n' + s; };
+async function test() {
+  out.textContent = '开始 ' + new Date().toLocaleTimeString();
+  try {
+    const est = await navigator.storage.estimate();
+    log('配额 quota: ' + (est.quota/1048576).toFixed(1) + ' MB');
+    log('已用 usage: ' + (est.usage/1048576).toFixed(1) + ' MB');
+    log('持久化 granted: ' + (navigator.storage.persisted ? await navigator.storage.persisted() : 'n/a'));
+    if (navigator.storage.persist) {
+      const p = await navigator.storage.persist();
+      log('申请持久化 persist(): ' + p);
+    }
+  } catch (e) { log('estimate 失败: ' + e.message); }
+  try {
+    const db = await new Promise((res, rej) => {
+      const r = indexedDB.open('diag', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('blobs');
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    });
+    const size = 190 * 1024 * 1024;
+    const blob = new Blob([new Uint8Array(size)], { type: 'application/octet-stream' });
+    const t0 = performance.now();
+    await new Promise((res, rej) => {
+      const tx = db.transaction('blobs', 'readwrite');
+      tx.objectStore('blobs').put(blob, 'test190');
+      tx.oncomplete = () => res();
+      tx.onerror = () => rej(tx.error);
+      tx.onabort = () => rej(tx.error || new Error('aborted'));
+    });
+    const dt = ((performance.now() - t0) / 1000).toFixed(1);
+    log('写入 190MB 成功，用时 ' + dt + ' 秒');
+  } catch (e) {
+    log('写入 190MB 失败: ' + (e && e.name) + ' ' + (e && e.message));
+  }
+  log('结束 ' + new Date().toLocaleTimeString());
+}
+document.getElementById('run').onclick = test;
+document.getElementById('clear').onclick = async () => {
+  try { indexedDB.deleteDatabase('diag'); log('已删除测试库'); } catch (e) { log('删除失败: ' + e.message); }
+};
+test();
+</script>
+</body>
+</html>
