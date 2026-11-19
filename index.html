@@ -114,12 +114,12 @@ function runSearch(q,list){
 if(!idxCache){list.innerHTML='<div class="ds-sp-empty">搜索中…</div>';loadIndex(function(){runSearch(q,list)});return}
 window.__dsQ=q;var ql=q.toLowerCase(),hits=[];
 for(var i=0;i<idxCache.length;i++){
- var s=idxCache[i],raw=s.raw||[],kids={};for(var k=0;k<raw.length;k++){var pm=raw[k];if(pm.parentId!=null){(kids[pm.parentId]=kids[pm.parentId]||[]).push(pm)}}
+ var s=idxCache[i],raw=s.raw||[],kids={},by={};for(var k=0;k<raw.length;k++){var pm=raw[k];by[pm.id]=pm;if(pm.parentId!=null){(kids[pm.parentId]=kids[pm.parentId]||[]).push(pm)}}
  if((s.title||'').toLowerCase().indexOf(ql)>=0)hits.push({id:s.id,title:s.title||'',date:s.date||0,role:'title',snip:s.title||'',occ:0,branch:'',mid:''});
  var occ=0;
  for(var j=0;j<raw.length;j++){
   var m=raw[j],text=(typeof m.content==='string'?m.content:'')+' '+(m.blocks||[]).map(function(b){return b.text||b.thinking||''}).join(' '),lower=text.toLowerCase(),pos=0;
-  while((pos=lower.indexOf(ql,pos))>=0){var st=Math.max(0,pos-8),en=Math.min(text.length,pos+ql.length+38),snip=(st>0?'…':'')+text.slice(st,en)+(en<text.length?'…':''),sib=m.parentId!=null?(kids[m.parentId]||[]):[],branch=sib.length>1?((sib.indexOf(m)+1)+'/'+sib.length):'';hits.push({id:s.id,title:s.title||'',date:s.date||0,role:m.role,snip:snip,occ:occ,branch:branch,mid:m.id});occ++;pos+=ql.length}
+  while((pos=lower.indexOf(ql,pos))>=0){var st=Math.max(0,pos-8),en=Math.min(text.length,pos+ql.length+38),snip=(st>0?'…':'')+text.slice(st,en)+(en<text.length?'…':''),sib=m.parentId!=null?(kids[m.parentId]||[]):[],branch=sib.length>1?((sib.indexOf(m)+1)+'/'+sib.length):'';var path=[],cur=m;while(cur){path.unshift(cur);cur=cur.parentId!=null?by[cur.parentId]:null}var pre='';for(var z=0;z<path.length-1;z++){var pm2=path[z];pre+=(typeof pm2.content==='string'?pm2.content:'')+' '+(pm2.blocks||[]).map(function(b){return b.text||b.thinking||''}).join(' ')+' '}var occBase=pre.toLowerCase().split(ql).length-1;var occ2=occBase+lower.slice(0,pos).split(ql).length-1;hits.push({id:s.id,title:s.title||'',date:s.date||0,role:m.role,snip:snip,occ:occ2,branch:branch,mid:m.id});occ++;pos+=ql.length}
  }
 }
 window.__dsHits=hits;renderHits(true);
