@@ -77,14 +77,14 @@ async function __applyTemp(sid,mid,q,occ){
   if(!points.length){try{expandThink()}catch(e){};setTimeout(function(){jump(q,occ)},250);return}
   var map=__tempMap();
   if(!map[sid]){map[sid]=points.map(function(x){return{parentId:x.parentId,orig:x.orig}});__tempSave(map)}
-  window.__dsTemp={sid:sid,points:points,sent:false,origCount:(s.messages||[]).length};
+  window.__dsTemp={sid:sid,points:points,sent:false,origCount:(s.messages||[]).length};window.__dsLog=window.__dsLog||[];window.__dsLog.push(['apply',sid,mid,points.length]);
   var pi=0;
   function finish(){try{expandThink()}catch(e){};setTimeout(function(){jump(q,occ)},300)}
   function nextPoint(){
-   if(pi>=points.length)return finish();
+   window.__dsLog.push(['point',pi]);if(pi>=points.length)return finish();
    var pt=points[pi],tries=0;
    function step(){
-    var el=__findSwitcher(pt.sibs);
+    var el=__findSwitcher(pt.sibs);window.__dsLog.push(['find',pi,!!el,el&&(el.querySelector('.count-f95eb4')||{}).textContent]);
     if(!el){if(tries++<60)return setTimeout(step,200);return finish()}
     var cnt=(el.querySelector('.count-f95eb4')||{}).textContent||'',mm=cnt.match(/(\d+)\s*\/\s*(\d+)/);
     if(!mm){if(tries++<20)return setTimeout(step,200);return finish()}
@@ -92,7 +92,7 @@ async function __applyTemp(sid,mid,q,occ){
     if(cur===targetIdx){pi++;return nextPoint()}
     var btn=el.querySelector(cur<targetIdx?'button[aria-label="下一个版本"]':'button[aria-label="上一个版本"]')||el.querySelectorAll('button')[cur<targetIdx?1:0];
     if(!btn){if(tries++<20)return setTimeout(step,200);return finish()}
-    window.__dsTempProgram=true;btn.click();window.__dsTempProgram=false;
+    window.__dsLog.push(['click',pi,cur,targetIdx]);window.__dsTempProgram=true;btn.click();window.__dsTempProgram=false;
     if(tries++<40)setTimeout(step,250);
    }
    step();
