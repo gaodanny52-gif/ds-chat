@@ -90,7 +90,7 @@ async function __applyTemp(sid,mid,q,occ){
     if(!mm){if(tries++<20)return setTimeout(step,200);return finish()}
     var cur=parseInt(mm[1],10),targetIdx=pt.sibs.map(function(x){return String(x.id)}).indexOf(String(pt.targetId))+1;
     if(cur===targetIdx){pi++;return nextPoint()}
-    var btn=el.querySelector(cur<targetIdx?'.next-f95eb4':'.previous-f95eb4');
+    var btn=el.querySelector(cur<targetIdx?'button[aria-label="下一个版本"]':'button[aria-label="上一个版本"]')||el.querySelectorAll('button')[cur<targetIdx?1:0];
     if(!btn){if(tries++<20)return setTimeout(step,200);return finish()}
     window.__dsTempProgram=true;btn.click();window.__dsTempProgram=false;
     if(tries++<40)setTimeout(step,250);
