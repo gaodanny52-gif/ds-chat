@@ -1,4 +1,4 @@
-const CACHE = 'ds-chat-pwa-v1';
+const CACHE = 'ds-chat-pwa-v2';
 const SHELL = ['./', './index.html'];
 
 self.addEventListener('install', event => {
@@ -13,6 +13,14 @@ self.addEventListener('activate', event => {
   );
 });
 
+function networkFirst(req) {
+  return fetch(req).then(res => {
+    const copy = res.clone();
+    caches.open(CACHE).then(cache => cache.put(req, copy)).catch(() => {});
+    return res;
+  }).catch(() => caches.match(req).then(r => r || caches.match('./index.html')));
+}
+
 self.addEventListener('fetch', event => {
   const req = event.request;
   if (req.method !== 'GET') return;
@@ -20,17 +28,17 @@ self.addEventListener('fetch', event => {
   if (url.origin !== self.location.origin) return;
 
   if (req.mode === 'navigate') {
-    event.respondWith(
-      fetch(req).then(res => {
-        const copy = res.clone();
-        caches.open(CACHE).then(cache => cache.put(req, copy)).catch(() => {});
-        return res;
-      }).catch(() => caches.match(req).then(r => r || caches.match('./index.html')))
-    );
+    event.respondWith(networkFirst(req));
     return;
   }
 
   if (url.pathname.endsWith('/sw.js') || url.pathname.endsWith('manifest.webmanifest')) return;
+
+  // JS/CSS/HTML 必须走网络优先，避免部署后 index 更新但旧 JS 被缓存
+  if (/\.(js|css|html)$/.test(url.pathname)) {
+    event.respondWith(networkFirst(req));
+    return;
+  }
 
   event.respondWith(
     caches.match(req).then(cached => {
