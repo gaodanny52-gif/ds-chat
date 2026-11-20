@@ -108,7 +108,7 @@ var list=$('#ds-sp-list');if(!list)return;if(reset){window.__dsShown=0;list.inne
 var hits=window.__dsHits||[];if(!hits.length){if(!window.__dsShown)list.innerHTML='<div class="ds-sp-empty">没有找到相关内容</div>';return}
 var q=window.__dsQ||'';function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}function hl(s,qq){var e=esc(s),special='.*+?^${}()|[]\\',qe=String(qq).split('').map(function(c){return special.indexOf(c)>=0?'\\'+c:c}).join('');try{return e.replace(new RegExp('('+qe+')','ig'),'<mark class="ds-kw">$1</mark>')}catch(_){return e}}
 var start=window.__dsShown||0,end=Math.min(start+30,hits.length),buf='';
-for(var i=start;i<end;i++){var r=hits[i],d=r.date?new Date(r.date).toLocaleDateString('zh-CN',{month:'2-digit',day:'2-digit'}):'',icon=r.role==='title'?'T':r.role==='user'?'我':'AI',branch=r.branch?'<span class="ds-branch">'+esc(r.branch)+'</span>':'';buf+='<div class="ds-sp-hit" data-id="'+esc(r.id)+'" data-q="'+esc(q)+'" data-occ="'+r.occ+'" data-mid="'+(r.mid||'')+'" data-branch="'+esc(r.branch||'')+'"><div class="ds-sp-icon">'+icon+'</div><div class="ds-sp-main"><div class="ds-sp-title"><span>'+hl(r.title,q)+'</span><span class="ds-sp-date">'+d+'</span></div><div class="ds-sp-snip">'+branch+hl(r.snip,q)+'</div></div></div>'}
+for(var i=start;i<end;i++){var r=hits[i],d=r.date?new Date(r.date).toLocaleDateString('zh-CN',{month:'2-digit',day:'2-digit'}):'',icon=r.role==='title'?'T':r.role==='user'?'我':'AI',branch=r.branch?'<span class="ds-branch">'+esc(r.branch)+'</span>':'',more=r.more?'<span class="ds-sp-more">…</span>':'';buf+='<div class="ds-sp-hit" data-id="'+esc(r.id)+'" data-q="'+esc(q)+'" data-occ="'+r.occ+'" data-mid="'+(r.mid||'')+'" data-switch="'+(r.switchMid||'')+'" data-branch="'+esc(r.branch||'')+'"><div class="ds-sp-icon">'+icon+'</div><div class="ds-sp-main"><div class="ds-sp-title"><span>'+hl(r.title,q)+'</span><span class="ds-sp-date">'+d+'</span></div><div class="ds-sp-snip">'+branch+'<span class="ds-sp-snip-text">'+hl(r.snip,q)+'</span>'+more+'</div></div></div>'}
 list.insertAdjacentHTML('beforeend',buf);window.__dsShown=end;
 if(end<hits.length&&list.scrollHeight<=list.clientHeight+40)setTimeout(function(){renderHits(false)},30);
 }
@@ -125,8 +125,7 @@ function step(){
  for(;i<end;i++){
   var s=sessions[i];__ensureText(s);
   var raw=s.raw||[],kids=s._kids,by=s._by,texts=s._texts,idx=s._idx;
-  if((s.title||'').toLowerCase().indexOf(ql)>=0)window.__dsHits.push({id:s.id,title:s.title||'',date:s.date||0,role:'title',snip:s.title||'',occ:0,branch:'',mid:'',switchMid:'',more:false});
-  var sCount=0;
+  var sCount=0;if((s.title||'').toLowerCase().indexOf(ql)>=0){window.__dsHits.push({id:s.id,title:s.title||'',date:s.date||0,role:'title',snip:s.title||'',occ:0,branch:'',mid:'',switchMid:'',more:false});sCount=1}
   for(var j=raw.length-1;j>=0&&sCount<20;j--){
    var m=raw[j],text=texts[j],lower=text.toLowerCase(),pos=lower.indexOf(ql);
    if(pos<0)continue;
