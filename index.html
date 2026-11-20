@@ -142,9 +142,10 @@ function step(){
  }
  var prog=document.getElementById('ds-sp-progress');
  if(prog)prog.textContent='搜索中… '+i+'/'+sessions.length;
- if(window.__dsHits.length){if(prog)list.innerHTML='';renderHits(false)}
+ if(window.__dsHits.length&&window.__dsShown===0){if(prog)list.innerHTML='';renderHits(false)}
  if(i<sessions.length)setTimeout(step,0);
  else if(!window.__dsHits.length)list.innerHTML='<div class="ds-sp-empty">没有找到相关内容</div>';
+ else{window.__dsHits.sort(function(a,b){return (b.date||0)-(a.date||0)});window.__dsShown=0;list.innerHTML='';renderHits(true)}
 }
 step();
 }
