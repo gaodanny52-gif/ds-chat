@@ -1,4 +1,4 @@
-const CACHE = 'ds-chat-pwa-v4';
+const CACHE = 'ds-chat-pwa-v5';
 const SHELL = ['./', './index.html'];
 
 self.addEventListener('install', event => {
